@@ -1,0 +1,15 @@
+services:
+  compra-ligera:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DB_PATH: /app/data/shopping.db
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+    volumes:
+      - shopping-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  shopping-data:
