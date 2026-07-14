@@ -23,6 +23,7 @@ export const ITEM_ICON_KEYS = [
   "coffee",
   "carrot",
   "pantry",
+  "pasta",
   "cleaning",
   "household",
   "meat",
@@ -77,7 +78,7 @@ export const CATEGORY_DEFAULT_ICON: Record<ShoppingCategory, ItemIconKey> = {
 export const FREQUENT_ITEMS: FrequentItem[] = [
   { name: "Leche entera", category: "dairy", iconKey: "milk" },
   { name: "Pan lactal", category: "bakery", iconKey: "bakery" },
-  { name: "Huevos (docena)", category: "dairy", iconKey: "eggs" },
+  { name: "Huevos", category: "dairy", iconKey: "eggs" },
   { name: "Bananas", category: "produce", iconKey: "banana" },
   { name: "Zanahorias", category: "produce", iconKey: "carrot" },
   { name: "Café", category: "pantry", iconKey: "coffee" },
@@ -89,7 +90,7 @@ export const FREQUENT_ITEMS: FrequentItem[] = [
   { name: "Shampoo", category: "personalCare", iconKey: "personalCare" },
   { name: "Papel higiénico", category: "household", iconKey: "household" },
   { name: "Yerba mate", category: "pantry", iconKey: "coffee" },
-  { name: "Fideos secos", category: "pantry", iconKey: "pantry" },
+  { name: "Fideos secos", category: "pantry", iconKey: "pasta" },
 ];
 
 export function isShoppingCategory(value: string): value is ShoppingCategory {

@@ -17,6 +17,7 @@ import {
   Snowflake,
   SoapDispenserDroplet,
   Sparkles,
+  Wheat,
   type LucideIcon,
 } from "lucide-react";
 import type { ItemIconKey, ShoppingCategory } from "@/lib/catalog";
@@ -29,6 +30,7 @@ const icons: Record<ItemIconKey, LucideIcon> = {
   coffee: Coffee,
   carrot: Carrot,
   pantry: Package,
+  pasta: Wheat,
   cleaning: Sparkles,
   household: House,
   meat: Beef,
