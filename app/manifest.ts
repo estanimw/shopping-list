@@ -25,8 +25,8 @@ export default function manifest(): MetadataRoute.Manifest {
       },
     ],
     lang: "es-AR",
-    name: "Compra Ligera · Lista de compras",
-    short_name: "Compra Ligera",
+    name: "Listita · Lista de compras",
+    short_name: "Listita",
     start_url: "/",
     theme_color: "#177b5f",
   };

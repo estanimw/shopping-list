@@ -17,7 +17,7 @@ export function OfflineEntry() {
     return (
       <main className="offline-loading">
         <h1>Necesitás Internet una primera vez</h1>
-        <p>Abrí Compra Ligera con conexión para dejar tu lista disponible sin señal.</p>
+        <p>Abrí Listita con conexión para dejar tu lista disponible sin señal.</p>
       </main>
     );
   }

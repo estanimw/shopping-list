@@ -1,4 +1,4 @@
-# Compra Ligera
+# Listita
 
 Una lista de compras mínima y agradable de usar, pensada primero para móvil y ampliada para escritorio. Los productos se guardan en SQLite, por lo que sobreviven reinicios del navegador y del contenedor.
 
@@ -24,7 +24,7 @@ Por defecto, la base se crea en `data/shopping.db`.
 
 ## Usar sin señal
 
-1. Con Internet, abrí la lista e instalala desde Chrome para Android con **Instalar aplicación** o **Agregar a pantalla de inicio**.
+1. Con Internet, abrí Listita e instalala desde Chrome para Android con **Instalar aplicación** o **Agregar a pantalla de inicio**.
 2. Después de esa primera carga, podés abrirla sin señal, agregar, completar, restaurar, eliminar productos o finalizar una compra.
 3. El aviso debajo del título muestra si hay cambios pendientes. Se sincronizan al reconectar, volver a abrir la app o traerla de nuevo al frente.
 

@@ -14,12 +14,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: host ? new URL(`${protocol}://${host}`) : undefined,
-    title: "Compra Ligera · Lista de compras",
+    title: "Listita · Lista de compras",
     description: "Una lista de compras simple, amable y persistente.",
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",
-      title: "Compra Ligera",
+      title: "Listita",
     },
     icons: {
       apple: [{ sizes: "180x180", url: "/apple-icon" }],
@@ -27,13 +27,13 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     manifest: "/manifest.webmanifest",
     openGraph: {
-      title: "Compra Ligera",
+      title: "Listita",
       description: "Hagamos que comprar sea más liviano.",
-      images: [{ url: "/og.png", width: 1731, height: 909, alt: "Compra Ligera" }],
+      images: [{ url: "/og.png", width: 1731, height: 909, alt: "Listita" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Compra Ligera",
+      title: "Listita",
       description: "Hagamos que comprar sea más liviano.",
       images: ["/og.png"],
     },

@@ -54,7 +54,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           <span className="auth-brand__icon">
             <ShoppingBasket aria-hidden="true" size={23} strokeWidth={2.2} />
           </span>
-          <span>Compra Ligera</span>
+          <span>Listita</span>
         </div>
 
         <div className="auth-card__heading">
