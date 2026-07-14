@@ -11,28 +11,25 @@ import {
   LogOut,
   PartyPopper,
   Plus,
+  RefreshCw,
   ShoppingBasket,
   Sparkles,
   Undo2,
   UserRound,
+  WifiOff,
   X,
 } from "lucide-react";
-import {
-  addItemAction,
-  deleteItemAction,
-  finishPurchaseAction,
-  restoreItemAction,
-  setItemCompletionAction,
-} from "@/app/actions";
 import { AddItemDialog } from "@/components/add-item-dialog";
 import { FrequentItems } from "@/components/frequent-items";
 import { SwipeableItem } from "@/components/swipeable-item";
+import { useOfflineShopping } from "@/components/use-offline-shopping";
 import { authClient } from "@/lib/auth-client";
 import type { FrequentItem } from "@/lib/catalog";
-import type { NewShoppingItem, ShoppingItem } from "@/lib/types";
+import type { NewShoppingItem, ShoppingItem, ShoppingSnapshot } from "@/lib/types";
 
 interface ShoppingShellProps {
-  initialItems: ShoppingItem[];
+  initialSnapshot: ShoppingSnapshot;
+  userId: string;
   userName: string;
 }
 
@@ -41,15 +38,27 @@ interface Toast {
   undoItem?: ShoppingItem;
 }
 
-export function ShoppingShell({ initialItems, userName }: ShoppingShellProps) {
-  const [items, setItems] = useState(initialItems);
+export function ShoppingShell({ initialSnapshot, userId, userName }: ShoppingShellProps) {
+  const {
+    addItem,
+    clearLocalData,
+    deleteItem,
+    finishPurchase,
+    isReady,
+    pendingChanges,
+    restoreItem,
+    setItemCompletion,
+    snapshot,
+    syncState,
+  } = useOfflineShopping({ initialSnapshot, userId, userName });
+  const items = snapshot.items;
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
   const [isFinishConfirmationOpen, setIsFinishConfirmationOpen] = useState(false);
   const [isCompletedOpen, setIsCompletedOpen] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [mutatingItemIds, setMutatingItemIds] = useState<number[]>([]);
+  const [mutatingItemIds, setMutatingItemIds] = useState<string[]>([]);
   const [toast, setToast] = useState<Toast | null>(null);
   const toastTimeoutRef = useRef<number | null>(null);
 
@@ -61,8 +70,20 @@ export function ShoppingShell({ initialItems, userName }: ShoppingShellProps) {
   const completedPercent = totalItems
     ? Math.round((completedItems.length / totalItems) * 100)
     : 0;
-  const isListBusy = isAdding || isFinishing || mutatingItemIds.length > 0;
+  const isListBusy = !isReady || isAdding || isFinishing || mutatingItemIds.length > 0;
   const closeAddDialog = useCallback(() => setIsAddOpen(false), []);
+  const synchronizationLabel =
+    syncState === "offline"
+      ? pendingChanges
+        ? `${pendingChanges} ${pendingChanges === 1 ? "cambio pendiente" : "cambios pendientes"} · se guardarán al volver Internet`
+        : "Sin conexión · podés seguir usando tu lista"
+      : syncState === "synchronizing"
+        ? "Guardando tus cambios…"
+        : syncState === "needs-auth"
+          ? "Volvé a iniciar sesión para guardar los cambios pendientes"
+          : pendingChanges
+            ? `${pendingChanges} ${pendingChanges === 1 ? "cambio pendiente" : "cambios pendientes"}`
+            : "Todo sincronizado";
 
   useEffect(() => {
     return () => {
@@ -84,7 +105,7 @@ export function ShoppingShell({ initialItems, userName }: ShoppingShellProps) {
     );
   }
 
-  function markItemAsMutating(itemId: number, isMutating: boolean) {
+  function markItemAsMutating(itemId: string, isMutating: boolean) {
     setMutatingItemIds((currentIds) =>
       isMutating
         ? currentIds.includes(itemId)
@@ -103,17 +124,14 @@ export function ShoppingShell({ initialItems, userName }: ShoppingShellProps) {
     setIsAdding(true);
 
     try {
-      const result = await addItemAction(input);
-
-      if (!result.ok || !result.data) {
-        showToast(result.error ?? "No pudimos sumar ese producto.");
+      const result = await addItem(input);
+      if (!result.saved) {
+        showToast("Estamos preparando el guardado local. Probá de nuevo en un instante.");
         return false;
       }
 
-      setItems((currentItems) => [result.data!, ...currentItems]);
-
       if (shouldAnnounce) {
-        showToast(`${result.data.name} ya está en tu lista.`);
+        showToast(`${result.item.name} ya está en tu lista.`);
       }
 
       return true;
@@ -133,45 +151,20 @@ export function ShoppingShell({ initialItems, userName }: ShoppingShellProps) {
     void createItem(item);
   }
 
-  function handleCompletion(itemId: number, completed: boolean) {
-    const originalItem = items.find((item) => item.id === itemId);
-    if (!originalItem || isFinishing || mutatingItemIds.includes(itemId)) {
+  function handleCompletion(itemId: string, completed: boolean) {
+    if (!items.some((item) => item.id === itemId) || isFinishing || mutatingItemIds.includes(itemId)) {
       return;
     }
 
     markItemAsMutating(itemId, true);
-    setItems((currentItems) =>
-      currentItems.map((item) =>
-        item.id === itemId
-          ? {
-              ...item,
-              status: completed ? "COMPLETED" : "PENDING",
-              completedAt: completed ? new Date().toISOString() : null,
-            }
-          : item,
-      ),
-    );
-
     void (async () => {
       try {
-        const result = await setItemCompletionAction(itemId, completed);
-
-        if (!result.ok || !result.data) {
-          setItems((currentItems) =>
-            currentItems.map((item) => (item.id === itemId ? originalItem : item)),
-          );
-          showToast(result.error ?? "No pudimos actualizar ese producto.");
-          return;
+        const saved = await setItemCompletion(itemId, completed);
+        if (!saved) {
+          showToast("Estamos preparando el guardado local. Probá de nuevo en un instante.");
         }
-
-        setItems((currentItems) =>
-          currentItems.map((item) => (item.id === itemId ? result.data! : item)),
-        );
       } catch {
-        setItems((currentItems) =>
-          currentItems.map((item) => (item.id === itemId ? originalItem : item)),
-        );
-        showToast("No pudimos conectar para actualizar ese producto.");
+        showToast("No pudimos guardar este cambio en el teléfono.");
       } finally {
         markItemAsMutating(itemId, false);
       }
@@ -184,22 +177,18 @@ export function ShoppingShell({ initialItems, userName }: ShoppingShellProps) {
     }
 
     markItemAsMutating(item.id, true);
-    setItems((currentItems) => currentItems.filter((currentItem) => currentItem.id !== item.id));
 
     void (async () => {
       try {
-        const result = await deleteItemAction(item.id);
-
-        if (!result.ok) {
-          setItems((currentItems) => [item, ...currentItems]);
-          showToast(result.error ?? "No pudimos eliminar ese producto.");
+        const saved = await deleteItem(item.id);
+        if (!saved) {
+          showToast("Estamos preparando el guardado local. Probá de nuevo en un instante.");
           return;
         }
 
         showToast(`${item.name} se eliminó de la lista.`, item);
       } catch {
-        setItems((currentItems) => [item, ...currentItems]);
-        showToast("No pudimos conectar para eliminar ese producto.");
+        showToast("No pudimos guardar este cambio en el teléfono.");
       } finally {
         markItemAsMutating(item.id, false);
       }
@@ -220,17 +209,14 @@ export function ShoppingShell({ initialItems, userName }: ShoppingShellProps) {
 
     void (async () => {
       try {
-        const result = await restoreItemAction(itemToRestore.id);
-
-        if (!result.ok || !result.data) {
-          showToast(result.error ?? "No pudimos recuperar ese producto.");
+        const saved = await restoreItem(itemToRestore);
+        if (!saved) {
+          showToast("Estamos preparando el guardado local. Probá de nuevo en un instante.");
           return;
         }
-
-        setItems((currentItems) => [result.data!, ...currentItems]);
-        showToast(`${result.data.name} volvió a pendientes.`);
+        showToast(`${itemToRestore.name} volvió a pendientes.`);
       } catch {
-        showToast("No pudimos conectar para recuperar ese producto.");
+        showToast("No pudimos guardar este cambio en el teléfono.");
       } finally {
         markItemAsMutating(itemToRestore.id, false);
       }
@@ -250,19 +236,17 @@ export function ShoppingShell({ initialItems, userName }: ShoppingShellProps) {
 
     void (async () => {
       try {
-        const result = await finishPurchaseAction();
-
-        if (!result.ok || !result.data) {
-          showToast(result.error ?? "No pudimos finalizar la compra.");
+        const saved = await finishPurchase();
+        if (!saved) {
+          showToast("Estamos preparando el guardado local. Probá de nuevo en un instante.");
           return;
         }
 
-        setItems([]);
         setIsFinishConfirmationOpen(false);
         setIsCompletedOpen(false);
         showToast("¡Compra cerrada! Dejamos una lista nueva para la próxima vez.");
       } catch {
-        showToast("No pudimos conectar para finalizar la compra.");
+        showToast("No pudimos guardar este cierre de compra en el teléfono.");
       } finally {
         setIsFinishing(false);
       }
@@ -270,9 +254,17 @@ export function ShoppingShell({ initialItems, userName }: ShoppingShellProps) {
   }
 
   async function handleSignOut() {
+    if (pendingChanges) {
+      showToast(
+        `Tenés ${pendingChanges} ${pendingChanges === 1 ? "cambio pendiente" : "cambios pendientes"}. Conectate antes de salir para no perderlos.`,
+      );
+      return;
+    }
+
     setIsSigningOut(true);
 
     try {
+      await clearLocalData();
       await authClient.signOut();
       window.location.assign("/sign-in");
     } catch {
@@ -313,6 +305,16 @@ export function ShoppingShell({ initialItems, userName }: ShoppingShellProps) {
             </div>
             <h1>Hagamos que comprar sea más liviano.</h1>
             <p>Sumá lo que falta y deslizá cada producto cuando ya esté listo.</p>
+            <div aria-live="polite" className={`sync-status sync-status--${syncState}`} role="status">
+              {syncState === "offline" ? (
+                <WifiOff aria-hidden="true" size={15} />
+              ) : syncState === "synchronizing" ? (
+                <RefreshCw aria-hidden="true" className="sync-status__spinner" size={15} />
+              ) : (
+                <Check aria-hidden="true" size={15} />
+              )}
+              <span>{synchronizationLabel}</span>
+            </div>
           </div>
 
           <div
@@ -347,7 +349,7 @@ export function ShoppingShell({ initialItems, userName }: ShoppingShellProps) {
           <section className="shopping-column" aria-labelledby="pending-title">
             <button
               className="add-item-card"
-              disabled={isFinishing}
+              disabled={!isReady || isFinishing}
               onClick={() => setIsAddOpen(true)}
               type="button"
             >

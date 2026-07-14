@@ -12,8 +12,8 @@ import {
 import { getCurrentUser } from "@/lib/current-user";
 import type { ActionResult, NewShoppingItem, ShoppingItem } from "@/lib/types";
 
-function validItemId(itemId: number) {
-  return Number.isSafeInteger(itemId) && itemId > 0;
+function validItemId(itemId: string) {
+  return typeof itemId === "string" && itemId.length > 0;
 }
 
 function validateNewItem(input: {
@@ -61,7 +61,7 @@ export async function addItemAction(
 }
 
 export async function setItemCompletionAction(
-  itemId: number,
+  itemId: string,
   completed: boolean,
 ): Promise<ActionResult<ShoppingItem>> {
   const user = await getCurrentUser();
@@ -83,7 +83,7 @@ export async function setItemCompletionAction(
 }
 
 export async function deleteItemAction(
-  itemId: number,
+  itemId: string,
 ): Promise<ActionResult> {
   const user = await getCurrentUser();
   if (!user) {
@@ -104,7 +104,7 @@ export async function deleteItemAction(
 }
 
 export async function restoreItemAction(
-  itemId: number,
+  itemId: string,
 ): Promise<ActionResult<ShoppingItem>> {
   const user = await getCurrentUser();
   if (!user) {
@@ -124,7 +124,7 @@ export async function restoreItemAction(
   }
 }
 
-export async function finishPurchaseAction(): Promise<ActionResult<number>> {
+export async function finishPurchaseAction(): Promise<ActionResult<string>> {
   const user = await getCurrentUser();
   if (!user) {
     return { ok: false, error: "Tu sesión venció. Volvé a ingresar para continuar." };

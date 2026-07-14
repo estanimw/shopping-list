@@ -9,7 +9,7 @@ import { IconBadge } from "@/components/icon-badge";
 interface SwipeableItemProps {
   busy?: boolean;
   item: ShoppingItem;
-  onComplete: (itemId: number, completed: boolean) => void;
+  onComplete: (itemId: string, completed: boolean) => void;
   onDelete: (item: ShoppingItem) => void;
 }
 

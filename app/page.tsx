@@ -12,7 +12,7 @@ export default async function Home() {
     redirect("/sign-in");
   }
 
-  const { items } = getShoppingSnapshot(user.id);
+  const initialSnapshot = getShoppingSnapshot(user.id);
 
-  return <ShoppingShell initialItems={items} userName={user.name} />;
+  return <ShoppingShell initialSnapshot={initialSnapshot} userId={user.id} userName={user.name} />;
 }

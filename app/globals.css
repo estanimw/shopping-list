@@ -186,6 +186,67 @@ select:focus-visible {
   line-height: 1.52;
 }
 
+.sync-status {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  max-width: 100%;
+  margin-top: 13px;
+  padding: 7px 10px;
+  border: 1px solid rgba(23, 123, 95, 0.11);
+  border-radius: 999px;
+  color: var(--green);
+  background: rgba(227, 245, 235, 0.76);
+  font-size: 0.76rem;
+  font-weight: 720;
+  line-height: 1.2;
+}
+
+.sync-status--offline,
+.sync-status--needs-auth {
+  border-color: rgba(202, 133, 46, 0.19);
+  color: #8d611d;
+  background: rgba(255, 244, 218, 0.85);
+}
+
+.sync-status--pending,
+.sync-status--synchronizing {
+  color: #286d5c;
+  background: rgba(232, 246, 241, 0.88);
+}
+
+.sync-status__spinner {
+  animation: sync-spin 1.1s linear infinite;
+}
+
+.offline-loading {
+  display: grid;
+  width: min(100% - 34px, 520px);
+  min-height: 100vh;
+  margin: 0 auto;
+  place-content: center;
+  color: var(--ink);
+  text-align: center;
+}
+
+.offline-loading h1 {
+  margin: 0 0 9px;
+  font-size: clamp(1.7rem, 8vw, 2.45rem);
+  letter-spacing: -0.045em;
+}
+
+.offline-loading p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+@keyframes sync-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .progress-card {
   min-width: min(100%, 255px);
   padding: 15px 16px 14px;
